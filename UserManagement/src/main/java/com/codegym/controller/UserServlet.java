@@ -59,10 +59,10 @@ public class UserServlet extends HttpServlet {
             if ("create".equals(action)) {
                 dao.insertUser(new User(req.getParameter("name"), req.getParameter("email"), req.getParameter("country")));
             } else if ("edit".equals(action)) {
-                dao.updateUser(new User(Integer.parseInt(req.getParameter("id")), req.getParameter("name"),
+                dao.updateUserByProcedure(new User(Integer.parseInt(req.getParameter("id")), req.getParameter("name"),
                         req.getParameter("email"), req.getParameter("country")));
             } else if ("delete".equals(action)) {
-                dao.deleteUser(Integer.parseInt(req.getParameter("id")));
+                dao.deleteUserByProcedure(Integer.parseInt(req.getParameter("id")));
             }
             resp.sendRedirect(req.getContextPath() + "/users");
         } catch (Exception e) {
@@ -85,7 +85,7 @@ public class UserServlet extends HttpServlet {
     }
 
     private void list(HttpServletRequest req, HttpServletResponse resp) throws Exception {
-        req.setAttribute("listUser", dao.selectAllUsers());
+        req.setAttribute("listUser", dao.selectAllUsersByProcedure());
         req.getRequestDispatcher("user/list.jsp").forward(req, resp);
     }
 

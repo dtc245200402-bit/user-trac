@@ -20,6 +20,11 @@ public class UserDAO implements IUserDAO {
     private static final String DELETE = "DELETE FROM users WHERE id=?";
     private static final String UPDATE = "UPDATE users SET name=?,email=?,country=? WHERE id=?";
 
+    // Stored Procedures sử dụng CallableStatement
+    private static final String CALL_SELECT_ALL_USERS = "{CALL get_all_users()}";
+    private static final String CALL_UPDATE_USER = "{CALL update_user(?,?,?,?)}";
+    private static final String CALL_DELETE_USER = "{CALL delete_user(?)}";
+
     // Các câu lệnh phục vụ bài thực hành Transaction - không sử dụng Transaction
     private static final String SQL_INSERT = "INSERT INTO Employee (name, salary, created_Date) VALUES (?,?,?)";
     private static final String SQL_UPDATE = "UPDATE Employee SET salary=? WHERE name=?";
@@ -70,7 +75,26 @@ public class UserDAO implements IUserDAO {
 
     @Override
     public List<User> selectAllUsers() {
-        return executeListQuery(ALL, null);
+        try {
+            return selectAllUsersByProcedure();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /** Hiển thị danh sách User bằng MySQL Stored Procedure + CallableStatement. */
+    @Override
+    public List<User> selectAllUsersByProcedure() throws SQLException {
+        List<User> list = new ArrayList<>();
+        try (Connection c = getConnection();
+             CallableStatement cs = c.prepareCall(CALL_SELECT_ALL_USERS);
+             ResultSet r = cs.executeQuery()) {
+            while (r.next()) {
+                list.add(new User(r.getInt("id"), r.getString("name"),
+                        r.getString("email"), r.getString("country")));
+            }
+        }
+        return list;
     }
 
     @Override
@@ -103,9 +127,16 @@ public class UserDAO implements IUserDAO {
 
     @Override
     public boolean deleteUser(int id) throws Exception {
-        try (Connection c = getConnection(); PreparedStatement p = c.prepareStatement(DELETE)) {
-            p.setInt(1, id);
-            return p.executeUpdate() > 0;
+        return deleteUserByProcedure(id);
+    }
+
+    /** Xoá User bằng Stored Procedure + CallableStatement. */
+    @Override
+    public boolean deleteUserByProcedure(int id) throws SQLException {
+        try (Connection c = getConnection();
+             CallableStatement cs = c.prepareCall(CALL_DELETE_USER)) {
+            cs.setInt(1, id);
+            return cs.executeUpdate() > 0;
         }
     }
 
@@ -196,12 +227,19 @@ public class UserDAO implements IUserDAO {
 
     @Override
     public boolean updateUser(User u) throws Exception {
-        try (Connection c = getConnection(); PreparedStatement p = c.prepareStatement(UPDATE)) {
-            p.setString(1, u.getName());
-            p.setString(2, u.getEmail());
-            p.setString(3, u.getCountry());
-            p.setInt(4, u.getId());
-            return p.executeUpdate() > 0;
+        return updateUserByProcedure(u);
+    }
+
+    /** Cập nhật User bằng Stored Procedure + CallableStatement. */
+    @Override
+    public boolean updateUserByProcedure(User u) throws SQLException {
+        try (Connection c = getConnection();
+             CallableStatement cs = c.prepareCall(CALL_UPDATE_USER)) {
+            cs.setInt(1, u.getId());
+            cs.setString(2, u.getName());
+            cs.setString(3, u.getEmail());
+            cs.setString(4, u.getCountry());
+            return cs.executeUpdate() > 0;
         }
     }
 }

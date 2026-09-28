@@ -1,53 +1,47 @@
-# User Management - JDBC Transaction thực hành
+# User Management - Stored Procedures + JDBC
 
-Project JSP/Servlet/JDBC/MySQL trên Tomcat 10.1+.
+Bài tập cập nhật ứng dụng quản lý User để gọi MySQL Stored Procedures bằng `CallableStatement`.
 
 ## Chức năng
-- CRUD User
-- Tìm kiếm theo country
-- Sắp xếp theo name
-- Thực hành SQL không sử dụng Transaction
+- Hiển thị danh sách User bằng `get_all_users()`
+- Sửa User bằng `update_user(...)`
+- Xoá User bằng `delete_user(...)`
+- Các chức năng tìm kiếm theo country và sắp xếp theo name của bài trước vẫn được giữ lại.
+- Các bài Transaction trước vẫn được giữ lại để tiện học tập.
 
-## Bài test không Transaction
-Truy cập:
-`http://localhost:8080/user-management/users?action=test-without-tran`
+## 1. Tạo Stored Procedures
+Mở MySQL Workbench/DBeaver và chạy toàn bộ file `database.sql`.
 
-Phương thức `insertUpdateWithoutTransaction()` sẽ:
-1. Xóa và tạo lại bảng Employee.
-2. Insert Quynh salary 10.
-3. Insert Ngan salary 20.
-4. Cố tình gây lỗi tại UPDATE vì không gán tham số 1.
+Ba procedure được tạo:
+- `get_all_users()`
+- `update_user(p_id, p_name, p_email, p_country)`
+- `delete_user(p_id)`
 
-Kết quả mong đợi: lỗi `No value specified for parameter 1`, nhưng hai dòng INSERT vẫn tồn tại vì không dùng Transaction/rollback.
+## 2. Cấu hình MySQL
+Mở `src/main/java/com/codegym/dao/UserDAO.java` và sửa:
 
-Kiểm tra bằng:
-`SELECT * FROM Employee;`
+```java
+private String jdbcUsername = "root";
+private String jdbcPassword = "password";
+```
 
-## Cấu hình MySQL
-Sửa `jdbcUsername` và `jdbcPassword` trong `UserDAO.java`.
-
-## Build
+## 3. Chạy project
 ```bash
 mvn clean package
 ```
 
-Deploy `target/user-management.war` lên Tomcat 10.1+.
+Deploy `target/user-management.war` vào Tomcat 10.1+.
 
+Truy cập:
+`http://localhost:8080/user-management/users`
 
-## Bài thực hành: SQL có sử dụng Transaction
+## 4. Kiểm tra
+- Mở danh sách: Servlet gọi `get_all_users()` qua `CallableStatement`.
+- Bấm Sửa và lưu: Servlet gọi `update_user(...)`.
+- Bấm Xoá: Servlet gọi `delete_user(...)`.
 
-Project đã bổ sung phương thức `insertUpdateUseTransaction()` và URL test:
-
-`http://localhost:8080/user-management/users?action=test-use-tran`
-
-Lần chạy đầu: mã UPDATE cố tình sai `setBigDecimal(2, ...)`, vì vậy Transaction không commit và dữ liệu INSERT được rollback.
-
-Để kiểm tra trường hợp thành công, sửa dòng:
-
-`psUpdate.setBigDecimal(2, new BigDecimal("999.99"));`
-
-thành:
-
-`psUpdate.setBigDecimal(1, new BigDecimal("999.99"));`
-
-Sau đó build lại bằng `mvn clean package`, deploy lại WAR và chạy URL test. Khi đó Quynh có salary 999.99 và Ngan có salary 20.
+Có thể kiểm tra procedure bằng MySQL:
+```sql
+USE demo;
+CALL get_all_users();
+```
