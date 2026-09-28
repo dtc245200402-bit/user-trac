@@ -41,6 +41,8 @@ public class UserServlet extends HttpServlet {
                 testWithoutTran(req, resp);
             } else if ("test-use-tran".equals(action)) {
                 testUseTran(req, resp);
+            } else if ("test-add-user-transaction".equals(action)) {
+                testAddUserTransaction(req, resp);
             } else {
                 list(req, resp);
             }
@@ -81,6 +83,17 @@ public class UserServlet extends HttpServlet {
         dao.insertUpdateUseTransaction();
         System.out.println("Hoàn tất gọi hàm testUseTran!");
         req.setAttribute("transactionTest", true);
+        req.getRequestDispatcher("user/list.jsp").forward(req, resp);
+    }
+
+    private void testAddUserTransaction(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+        try {
+            dao.addUserTransaction();
+            req.setAttribute("transactionMessage", "Transaction thành công: dữ liệu đã được commit.");
+        } catch (Exception e) {
+            req.setAttribute("transactionMessage", "Transaction thất bại: dữ liệu đã được rollback. Kiểm tra Console để xem lỗi SQL.");
+        }
+        req.setAttribute("listUser", dao.selectAllUsersByProcedure());
         req.getRequestDispatcher("user/list.jsp").forward(req, resp);
     }
 

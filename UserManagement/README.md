@@ -1,47 +1,30 @@
-# User Management - Stored Procedures + JDBC
+# UserManagement - MySQL JDBC Transaction
 
-Bài tập cập nhật ứng dụng quản lý User để gọi MySQL Stored Procedures bằng `CallableStatement`.
+Project JSP/Servlet/JDBC/MySQL tiếp tục từ các bài User Management trước.
 
-## Chức năng
-- Hiển thị danh sách User bằng `get_all_users()`
-- Sửa User bằng `update_user(...)`
-- Xoá User bằng `delete_user(...)`
-- Các chức năng tìm kiếm theo country và sắp xếp theo name của bài trước vẫn được giữ lại.
-- Các bài Transaction trước vẫn được giữ lại để tiện học tập.
+## Bài tập hiện tại
+Thêm phương thức `addUserTransaction()` để luyện tập `Connection.setAutoCommit(false)`, `commit()` và `rollback()`.
 
-## 1. Tạo Stored Procedures
-Mở MySQL Workbench/DBeaver và chạy toàn bộ file `database.sql`.
+## Test rollback
+1. Cấu hình tài khoản MySQL trong `UserDAO.java`.
+2. Chạy project trên Tomcat 10.1+.
+3. Truy cập:
 
-Ba procedure được tạo:
-- `get_all_users()`
-- `update_user(p_id, p_name, p_email, p_country)`
-- `delete_user(p_id)`
+`http://localhost:8080/user-management/users?action=test-add-user-transaction`
 
-## 2. Cấu hình MySQL
-Mở `src/main/java/com/codegym/dao/UserDAO.java` và sửa:
+Phương thức cố tình INSERT vào bảng không tồn tại `users_transaction_error`. Hai User đầu tiên được INSERT trong cùng Transaction, sau đó lỗi SQL xảy ra và `rollback()` được gọi, vì vậy hai bản ghi đầu tiên cũng không còn trong database.
 
-```java
-private String jdbcUsername = "root";
-private String jdbcPassword = "password";
-```
+## Test commit
+Trong `UserDAO.java`, đổi bảng `users_transaction_error` thành `users`. Build lại bằng:
 
-## 3. Chạy project
 ```bash
 mvn clean package
 ```
 
-Deploy `target/user-management.war` vào Tomcat 10.1+.
+Sau đó chạy lại URL trên. Khi không còn lỗi, `commit()` được gọi và các bản ghi được lưu.
 
-Truy cập:
-`http://localhost:8080/user-management/users`
-
-## 4. Kiểm tra
-- Mở danh sách: Servlet gọi `get_all_users()` qua `CallableStatement`.
-- Bấm Sửa và lưu: Servlet gọi `update_user(...)`.
-- Bấm Xoá: Servlet gọi `delete_user(...)`.
-
-Có thể kiểm tra procedure bằng MySQL:
+## MySQL kiểm tra
 ```sql
 USE demo;
-CALL get_all_users();
+SELECT * FROM users;
 ```

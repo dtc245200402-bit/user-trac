@@ -19,6 +19,15 @@
     </style>
 </head>
 <body>
+    <div style="margin: 15px 0; padding: 12px; background: #fff3cd; border-radius: 6px;">
+        <strong>Luyện tập JDBC Transaction:</strong>
+        <a href="${pageContext.request.contextPath}/users?action=test-add-user-transaction"
+           style="margin-left:10px;">Chạy addUserTransaction()</a>
+        <c:if test="${not empty requestScope.transactionMessage}">
+            <div style="margin-top:8px;">${requestScope.transactionMessage}</div>
+        </c:if>
+    </div>
+
 <div class="box">
     <h2>Danh sách User</h2>
 

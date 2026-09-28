@@ -20,4 +20,5 @@ public interface IUserDAO {
 
     void insertUpdateWithoutTransaction() throws SQLException;
     void insertUpdateUseTransaction() throws SQLException;
+    void addUserTransaction() throws SQLException;
 }

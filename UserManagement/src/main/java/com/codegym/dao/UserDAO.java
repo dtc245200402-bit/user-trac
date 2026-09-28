@@ -225,6 +225,53 @@ public class UserDAO implements IUserDAO {
         }
     }
 
+    /**
+     * Bài tập MySQL JDBC Transaction: thêm nhiều User trong cùng một Transaction.
+     * Mã nguồn cố tình tạo lỗi SQL để kiểm tra rollback.
+     * Khi sửa dòng gây lỗi, toàn bộ dữ liệu sẽ được commit.
+     */
+    @Override
+    public void addUserTransaction() throws SQLException {
+        String sql = "INSERT INTO users(name, email, country) VALUES (?, ?, ?)";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            conn.setAutoCommit(false);
+
+            try {
+                ps.setString(1, "Transaction User 1");
+                ps.setString(2, "transaction1@example.com");
+                ps.setString(3, "Viet Nam");
+                ps.executeUpdate();
+
+                ps.setString(1, "Transaction User 2");
+                ps.setString(2, "transaction2@example.com");
+                ps.setString(3, "Viet Nam");
+                ps.executeUpdate();
+
+                // CỐ TÌNH GÂY LỖI SQL để kiểm tra rollback.
+                // Sửa tên bảng thành users nếu muốn Transaction commit thành công.
+                try (PreparedStatement bad = conn.prepareStatement(
+                        "INSERT INTO users_transaction_error(name, email, country) VALUES (?, ?, ?)")) {
+                    bad.setString(1, "Transaction User 3");
+                    bad.setString(2, "transaction3@example.com");
+                    bad.setString(3, "Viet Nam");
+                    bad.executeUpdate();
+                }
+
+                conn.commit();
+                System.out.println("Transaction thành công: đã commit toàn bộ dữ liệu.");
+            } catch (SQLException e) {
+                conn.rollback();
+                System.out.println("SQL lỗi - đã rollback toàn bộ Transaction.");
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        }
+    }
+
     @Override
     public boolean updateUser(User u) throws Exception {
         return updateUserByProcedure(u);
