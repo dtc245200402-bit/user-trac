@@ -1,0 +1,15 @@
+CREATE DATABASE IF NOT EXISTS demo;
+USE demo;
+CREATE TABLE users (id INT(3) NOT NULL AUTO_INCREMENT,name VARCHAR(120) NOT NULL,email VARCHAR(220) NOT NULL,country VARCHAR(120),PRIMARY KEY(id));
+INSERT INTO users(name,email,country) VALUES('Minh','minh@codegym.vn','Viet Nam');
+INSERT INTO users(name,email,country) VALUES('Kante','kante@che.uk','Kenia');
+
+
+-- Bảng Employee phục vụ bài thực hành SQL không sử dụng Transaction.
+CREATE TABLE IF NOT EXISTS Employee (
+    id INT(3) NOT NULL AUTO_INCREMENT,
+    name VARCHAR(120) NOT NULL,
+    salary INT(220) NOT NULL,
+    created_Date DATETIME,
+    PRIMARY KEY (id)
+);
